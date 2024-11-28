@@ -1,0 +1,54 @@
+-- 기차 테이블
+CREATE TABLE train (
+    train_num NUMBER(10) PRIMARY KEY, -- 기차번호
+    train_type VARCHAR2(100) NOT NULL, -- ktx/srt, 새마을호 구분
+    str_station VARCHAR2(10), -- 출발역
+    arr_station VARCHAR2(10) -- 도착역
+);
+
+-- 기차 정보 테이블
+CREATE TABLE schedule (
+    schedule_id NUMBER(10) PRIMARY KEY, -- 일정고유번호 : 시퀀스 사용
+    train_num NUMBER(10), -- 기차번호 (FOREIGN KEY로 train 테이블과 연결)
+    start_day TIMESTAMP NOT NULL, -- 출발일
+    arrive_day TIMESTAMP NOT NULL, -- 도착일
+    money NUMBER(10) NOT NULL, -- 요금
+    -- special_seat NUMBER(3), -- 특실 좌석 개수 >> 없어도 됨
+    economy_seat NUMBER(3), -- 일반석 좌석 개수 >> 1인, 내측, 외측
+    baby_seat NUMBER(3), -- 유아석 좌석 개수
+    stand_seat CHAR(1) CHECK (stand_seat IN ('Y', 'N')), -- 입석 좌석 유무
+    FOREIGN KEY (train_num) REFERENCES train(train_num)
+);
+
+-- 기차 일정 고유 번호 시퀀스
+CREATE SEQUENCE schedule_seq
+    START WITH 1
+    INCREMENT BY 1
+    NOCACHE
+    NOCYCLE;
+
+
+-- 좌석 수 테이블
+create table seatinfo(--일반석의 경우
+    train_num number(10),-- 기차 번호
+    schedule_id NUMBER(10),
+    one_seat_count number(10),-- 1인실 좌석 수
+    inside_seat_count number(10), -- 내측 좌석 수
+    outside_seat_count number(10), -- 외측 좌석 수
+    -- seat_category varchar2(10), -- 좌석 카테고리 (예: 특실, 일반석 등) >> 삭제 전부 일반석
+    FOREIGN KEY (train_num) REFERENCES train(train_num), 
+    FOREIGN KEY (schedule_id) REFERENCES schedule(schedule_id)
+);
+
+
+-- 좌석 예약 테이블 >> 예약시간, 제약조건 추가
+create table reservation(
+reser_num number(10) primary key, --예약번호
+memberid number , -- 회원번호 -- foreign key 제약조건을 걸어야 할 듯
+train_num number(10) not null, --기차번호
+seat_type varchar2(10) not null, --1인실, 내측좌석, 외측좌석
+seat_num number(10) not null, --좌석번호
+reser_user varchar2(100), -- 예약자 이름
+reserved TIMESTAMP not null, -- 예약시간 
+FOREIGN KEY (train_num) REFERENCES train(train_num)
+);
